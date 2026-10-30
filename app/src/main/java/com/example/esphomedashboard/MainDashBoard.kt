@@ -26,6 +26,7 @@ import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.delay
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -34,13 +35,14 @@ import kotlin.time.Duration.Companion.seconds
 
 
 @Composable
-fun MainDashBoard(innerPadding: PaddingValues) {
+fun MainDashBoard(innerPadding: PaddingValues, mainDashBoardViewmodel: ViewModelDashBoard) {
+
     Column(
         modifier = Modifier
             .padding(16.dp)
 
     ) {
-        TopBarInfo()
+        TopBarInfo(mainDashBoardViewmodel)
         Spacer(modifier = Modifier.padding(top = 16.dp))
         HorizontalDivider(
             color = MaterialTheme.colorScheme.onSecondary,
@@ -50,8 +52,8 @@ fun MainDashBoard(innerPadding: PaddingValues) {
 }
 
 @Composable
-fun TopBarInfo() {
-
+fun TopBarInfo(mainDashBoardViewmodel: ViewModelDashBoard) {
+    val weatherResponse by mainDashBoardViewmodel.weatherState.collectAsStateWithLifecycle()
     val localeLang = Locale("ru")
 
     var currentTime by remember { mutableStateOf("") }
@@ -66,6 +68,23 @@ fun TopBarInfo() {
         }
 
     }
+
+
+    val currentTemperatureText = remember(weatherResponse) {
+        val response = weatherResponse ?: return@remember "Загрузка..."
+
+        val currentHourString = SimpleDateFormat("yyyy-MM-dd'T'HH:00", Locale.getDefault()).format(Date())
+        val index = response.hourly.time.indexOf(currentHourString)
+
+        val temp = if (index != -1) {
+            response.hourly.temperature_2m[index]
+        } else {
+            response.hourly.temperature_2m.firstOrNull() ?: 0.0
+        }
+
+        if (temp > 0) "+$temp °C" else "$temp °C"
+    }
+
     BoxWithConstraints() {
         val isTablet = maxWidth > 900.dp
 
@@ -95,15 +114,23 @@ fun TopBarInfo() {
                 text = currentDate,
                 style = TextStyle(
                     fontSize = dateFontSize,
-                    color = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.7f),
+                    color = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.9f),
                     fontFamily = FontFamily(Font(R.font.medium))
                 )
             )
+
             VerticalDivider(
                 color = MaterialTheme.colorScheme.onSecondary,
                 modifier = Modifier.fillMaxHeight(0.5f)
             )
-
+            Text(
+                text = "На улице $currentTemperatureText",
+                style = TextStyle(
+                    fontSize = dateFontSize,
+                    color = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.9f),
+                    fontFamily = FontFamily(Font(R.font.medium))
+                )
+            )
         }
     }
 }
