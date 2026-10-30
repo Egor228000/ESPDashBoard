@@ -82,7 +82,7 @@ fun TopBarInfo(mainDashBoardViewmodel: ViewModelDashBoard) {
             response.hourly.temperature_2m.firstOrNull() ?: 0.0
         }
 
-        if (temp > 0) "+$temp °C" else "$temp °C"
+        if (temp > 0) "На улице +$temp °C" else "На улице $temp °C"
     }
 
     BoxWithConstraints() {
@@ -124,7 +124,7 @@ fun TopBarInfo(mainDashBoardViewmodel: ViewModelDashBoard) {
                 modifier = Modifier.fillMaxHeight(0.5f)
             )
             Text(
-                text = "На улице $currentTemperatureText",
+                text = currentTemperatureText,
                 style = TextStyle(
                     fontSize = dateFontSize,
                     color = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.9f),
